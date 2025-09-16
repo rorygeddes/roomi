@@ -9,7 +9,9 @@ import {
   Plus, 
   TrendingUp, 
   Gavel, 
-  Info 
+  Info,
+  Calendar,
+  DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +19,8 @@ const navigationItems = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Chats', href: '/chats', icon: MessageCircle },
   { name: 'Plus', href: '/plus', icon: Plus },
+  { name: 'Events', href: '/events', icon: Calendar },
+  { name: 'Budget', href: '/budget', icon: DollarSign },
   { name: 'Leaderboard', href: '/leaderboard', icon: TrendingUp },
   { name: 'Rules', href: '/rules', icon: Gavel },
   { name: 'Info', href: '/info', icon: Info },

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { TransactionReviewModal } from '@/components/modals/TransactionReviewModal'
 import { AddChoreModal } from '@/components/modals/AddChoreModal'
 import { AddEventModal } from '@/components/modals/AddEventModal'
+import { useNotifications } from '@/hooks/useNotifications'
 import { 
   Camera, 
   Image, 
@@ -24,6 +25,12 @@ export const PlusScreen: React.FC = () => {
   const [parsedTransactions, setParsedTransactions] = useState<ParsedTransaction[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const {
+    notifyExpenseAdded,
+    notifyChoreAssigned,
+    notifyEventCreated
+  } = useNotifications()
 
   const roommates = [
     { id: '1', name: 'Alex' },
@@ -125,6 +132,11 @@ export const PlusScreen: React.FC = () => {
     // Show success message
     alert(`✅ Transactions accepted! Batch ID: ${batchId}`)
     
+    // Send notification
+    const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0)
+    const description = transactions.length === 1 ? transactions[0].description : `${transactions.length} transactions`
+    notifyExpenseAdded(totalAmount, description, selectedRoommates)
+    
     // Reset state
     setShowReviewModal(false)
     setParsedTransactions([])
@@ -141,6 +153,10 @@ export const PlusScreen: React.FC = () => {
     // TODO: Save chore to database
     console.log('Adding chore:', chore)
     alert(`✅ Chore "${chore.title}" added!`)
+    
+    // Send notification
+    const assignee = roommates.find(r => r.id === chore.assigneeId)
+    notifyChoreAssigned(chore.title, assignee?.name || 'Unknown')
   }
 
   const handleAddEvent = (event: {
@@ -155,6 +171,12 @@ export const PlusScreen: React.FC = () => {
     // TODO: Save event to database
     console.log('Adding event:', event)
     alert(`✅ Event "${event.title}" created!`)
+    
+    // Send notification
+    const participantNames = event.participants.map(id => 
+      roommates.find(r => r.id === id)?.name || 'Unknown'
+    )
+    notifyEventCreated(event.title, event.date, participantNames)
   }
 
   return (

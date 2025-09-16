@@ -4,14 +4,16 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { SettleUpModal } from '@/components/modals/SettleUpModal'
 import { BuyBeerModal } from '@/components/modals/BuyBeerModal'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
+import { useNotifications } from '@/hooks/useNotifications'
 import { 
   DollarSign, 
-  Calendar, 
   Gavel, 
   CheckCircle,
   Clock,
   Users,
-  Beer
+  Beer,
+  Bell
 } from 'lucide-react'
 import { getGreeting, formatCurrency } from '@/lib/utils'
 
@@ -48,7 +50,16 @@ export const HomeScreen: React.FC = () => {
   ])
   const [showSettleUpModal, setShowSettleUpModal] = useState(false)
   const [showBuyBeerModal, setShowBuyBeerModal] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
   const currentUserId = '4' // Current user (Rory)
+
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    clearAll,
+    notifyPaymentSettled
+  } = useNotifications()
 
   const houseSettings = {
     beerValue: 6.00,
@@ -102,6 +113,9 @@ export const HomeScreen: React.FC = () => {
     // Show success message
     const roommate = roommates.find(r => r.id === roommateId)
     alert(`✅ Settled up with ${roommate?.name} for $${amount.toFixed(2)}!`)
+    
+    // Send notification
+    notifyPaymentSettled(amount, roommate?.name || 'Unknown')
   }
 
   const handleBuyBeer = (roommateId: string, funAmount: number, funType: 'beer' | 'pizza' | 'coffee') => {
@@ -125,11 +139,25 @@ export const HomeScreen: React.FC = () => {
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {greeting || "Good morning! Happy Monday!"}
-        </h1>
-        <p className="text-gray-600 mt-1">Let&apos;s make today great!</p>
+      <div className="flex items-center justify-between">
+        <div className="text-center flex-1">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {greeting || "Good morning! Happy Monday!"}
+          </h1>
+          <p className="text-gray-600 mt-1">Let&apos;s make today great!</p>
+        </div>
+        <button
+          onClick={() => setShowNotifications(true)}
+          className="relative p-2 hover:bg-gray-100 rounded-lg"
+          title="Notifications"
+        >
+          <Bell size={24} className="text-gray-700" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Daily Tasks Bubble */}
@@ -245,6 +273,15 @@ export const HomeScreen: React.FC = () => {
         roommates={roommates}
         currentUserId={currentUserId}
         houseSettings={houseSettings}
+      />
+
+      {/* Notification Center */}
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        notifications={notifications}
+        onMarkAsRead={markAsRead}
+        onClearAll={clearAll}
       />
     </div>
   )
