@@ -6,7 +6,6 @@ import {
   DollarSign, 
   Calendar, 
   Gavel, 
-  TrendingUp,
   CheckCircle,
   Clock,
   Users
@@ -84,12 +83,12 @@ export const HomeScreen: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">
           {greeting || "Good morning! Happy Monday!"}
         </h1>
-        <p className="text-gray-600 mt-1">Let's make today great!</p>
+        <p className="text-gray-600 mt-1">Let&apos;s make today great!</p>
       </div>
 
       {/* Daily Tasks Bubble */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Today's Tasks</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Today&apos;s Tasks</h2>
         <div className="space-y-2">
           {tasks.map((task) => (
             <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">

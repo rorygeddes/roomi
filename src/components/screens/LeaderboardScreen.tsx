@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Trophy, Award, TrendingUp, Calendar } from 'lucide-react'
+import { Trophy, Award, Calendar } from 'lucide-react'
 
 interface LeaderboardEntry {
   id: string

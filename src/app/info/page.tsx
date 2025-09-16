@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Phone, Mail, MessageCircle, Settings, DollarSign } from 'lucide-react'
+import { getCurrentBatchCounter } from '@/lib/utils'
 
 export default function Info() {
   const [landlordInfo] = useState({
@@ -16,7 +17,7 @@ export default function Info() {
     beerValue: 6.00,
     pizzaValue: 15.00,
     currency: 'CAD',
-    batchIdCounter: 'B42'
+    batchIdCounter: `B${getCurrentBatchCounter()}`
   })
 
   return (

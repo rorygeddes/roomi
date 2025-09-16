@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X, Check, Users } from 'lucide-react'
+import { X, Check, Users, CheckCircle, AlertCircle } from 'lucide-react'
 import { ParsedTransaction } from '@/lib/openai'
 
 interface TransactionReviewModalProps {
+  isOpen: boolean
   transactions: ParsedTransaction[]
   roommates: Array<{ id: string; name: string }>
   onAccept: (transactions: ParsedTransaction[], selectedRoommates: string[]) => void
@@ -13,6 +14,7 @@ interface TransactionReviewModalProps {
 }
 
 export const TransactionReviewModal: React.FC<TransactionReviewModalProps> = ({
+  isOpen,
   transactions,
   roommates,
   onAccept,
@@ -25,6 +27,18 @@ export const TransactionReviewModal: React.FC<TransactionReviewModalProps> = ({
     const updated = [...editedTransactions]
     updated[index] = { ...updated[index], [field]: value }
     setEditedTransactions(updated)
+  }
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.9) return 'text-green-600'
+    if (confidence >= 0.7) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  const getConfidenceIcon = (confidence: number) => {
+    if (confidence >= 0.9) return <CheckCircle size={16} className="text-green-600" />
+    if (confidence >= 0.7) return <AlertCircle size={16} className="text-yellow-600" />
+    return <AlertCircle size={16} className="text-red-600" />
   }
 
   const handleRoommateToggle = (roommateId: string) => {
@@ -48,7 +62,7 @@ export const TransactionReviewModal: React.FC<TransactionReviewModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Review Transactions</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg" title="Close modal">
             <X size={24} />
           </button>
         </div>
@@ -60,41 +74,65 @@ export const TransactionReviewModal: React.FC<TransactionReviewModalProps> = ({
             <h3 className="font-semibold text-gray-900 mb-3">Transactions</h3>
             <div className="space-y-3">
               {editedTransactions.map((transaction, index) => (
-                <div key={index} className="grid grid-cols-4 gap-3 p-3 border border-gray-200 rounded-lg">
-                  <input
-                    type="date"
-                    value={transaction.date}
-                    onChange={(e) => handleTransactionEdit(index, 'date', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    value={transaction.description}
-                    onChange={(e) => handleTransactionEdit(index, 'description', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Description"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={transaction.amount}
-                    onChange={(e) => handleTransactionEdit(index, 'amount', parseFloat(e.target.value) || 0)}
-                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Amount"
-                  />
-                  <select
-                    value={transaction.category || 'Miscellaneous'}
-                    onChange={(e) => handleTransactionEdit(index, 'category', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="Rent">Rent</option>
-                    <option value="Groceries">Groceries</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Internet">Internet</option>
-                    <option value="Fun/Entertainment">Fun/Entertainment</option>
-                    <option value="Household Items">Household Items</option>
-                    <option value="Miscellaneous">Miscellaneous</option>
-                  </select>
+                <div key={transaction.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="grid grid-cols-4 gap-3 mb-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Date</label>
+                      <input
+                        type="date"
+                        value={transaction.date}
+                        onChange={(e) => handleTransactionEdit(index, 'date', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        title="Transaction date"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Description</label>
+                      <input
+                        type="text"
+                        value={transaction.description}
+                        onChange={(e) => handleTransactionEdit(index, 'description', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Description"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Amount</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={transaction.amount}
+                          onChange={(e) => handleTransactionEdit(index, 'amount', parseFloat(e.target.value) || 0)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Amount"
+                        />
+                        <div className="flex items-center space-x-1">
+                          {getConfidenceIcon(transaction.confidence)}
+                          <span className={`text-xs ${getConfidenceColor(transaction.confidence)}`}>
+                            {Math.round(transaction.confidence * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Category</label>
+                      <select
+                        value={transaction.category || 'Miscellaneous'}
+                        onChange={(e) => handleTransactionEdit(index, 'category', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        title="Transaction category"
+                      >
+                        <option value="Rent">🏠 Rent</option>
+                        <option value="Groceries">🛒 Groceries</option>
+                        <option value="Utilities">💡 Utilities</option>
+                        <option value="Internet">🌐 Internet</option>
+                        <option value="Fun/Entertainment">🎉 Fun/Entertainment</option>
+                        <option value="Household Items">🧹 Household Items</option>
+                        <option value="Miscellaneous">🔖 Miscellaneous</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
