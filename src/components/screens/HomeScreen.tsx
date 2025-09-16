@@ -2,13 +2,16 @@
 
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
+import { SettleUpModal } from '@/components/modals/SettleUpModal'
+import { BuyBeerModal } from '@/components/modals/BuyBeerModal'
 import { 
   DollarSign, 
   Calendar, 
   Gavel, 
   CheckCircle,
   Clock,
-  Users
+  Users,
+  Beer
 } from 'lucide-react'
 import { getGreeting, formatCurrency } from '@/lib/utils'
 
@@ -43,6 +46,15 @@ export const HomeScreen: React.FC = () => {
     { id: '2', name: 'Sam', balance: -12.30 },
     { id: '3', name: 'Jordan', balance: 8.90 },
   ])
+  const [showSettleUpModal, setShowSettleUpModal] = useState(false)
+  const [showBuyBeerModal, setShowBuyBeerModal] = useState(false)
+  const currentUserId = '4' // Current user (Rory)
+
+  const houseSettings = {
+    beerValue: 6.00,
+    pizzaValue: 15.00,
+    coffeeValue: 4.50
+  }
 
   const [tasks, setTasks] = useState<Task[]>([
     { id: '1', type: 'payment', title: 'Pay Alex $23.75', icon: <DollarSign size={16} /> },
@@ -74,6 +86,40 @@ export const HomeScreen: React.FC = () => {
 
   const getBalanceColor = (balance: number) => {
     return balance >= 0 ? 'text-green-600' : 'text-red-600'
+  }
+
+  const handleSettleUp = async (roommateId: string, amount: number, proofFile?: File) => {
+    // TODO: Save settlement to database
+    console.log('Settling up:', { roommateId, amount, proofFile })
+    
+    // Update local state (in real app, this would come from database)
+    setRoommates(prev => prev.map(roommate => 
+      roommate.id === roommateId 
+        ? { ...roommate, balance: Math.max(0, roommate.balance - amount) }
+        : roommate
+    ))
+    
+    // Show success message
+    const roommate = roommates.find(r => r.id === roommateId)
+    alert(`✅ Settled up with ${roommate?.name} for $${amount.toFixed(2)}!`)
+  }
+
+  const handleBuyBeer = (roommateId: string, funAmount: number, funType: 'beer' | 'pizza' | 'coffee') => {
+    // TODO: Save fun currency conversion to database
+    console.log('Converting to fun currency:', { roommateId, funAmount, funType })
+    
+    // Update local state (in real app, this would come from database)
+    const conversionValue = funAmount * houseSettings[`${funType}Value` as keyof typeof houseSettings]
+    setRoommates(prev => prev.map(roommate => 
+      roommate.id === roommateId 
+        ? { ...roommate, balance: Math.max(0, roommate.balance - conversionValue) }
+        : roommate
+    ))
+    
+    // Show success message
+    const roommate = roommates.find(r => r.id === roommateId)
+    const funLabel = funType === 'beer' ? 'beers' : funType === 'pizza' ? 'pizzas' : 'coffees'
+    alert(`✅ ${roommate?.name} can now buy you ${funAmount} ${funLabel} instead of $${conversionValue.toFixed(2)}!`)
   }
 
   return (
@@ -158,6 +204,7 @@ export const HomeScreen: React.FC = () => {
         <Button 
           variant="primary" 
           className="flex flex-col items-center py-4 space-y-2"
+          onClick={() => setShowSettleUpModal(true)}
         >
           <DollarSign size={24} />
           <span className="text-sm">Settle Up</span>
@@ -166,9 +213,10 @@ export const HomeScreen: React.FC = () => {
         <Button 
           variant="outline" 
           className="flex flex-col items-center py-4 space-y-2"
+          onClick={() => setShowBuyBeerModal(true)}
         >
-          <Calendar size={24} />
-          <span className="text-sm">Add Event</span>
+          <Beer size={24} />
+          <span className="text-sm">Buy Beer</span>
         </Button>
         
         <Button 
@@ -179,6 +227,25 @@ export const HomeScreen: React.FC = () => {
           <span className="text-sm">House Rules</span>
         </Button>
       </div>
+
+      {/* Settle Up Modal */}
+      <SettleUpModal
+        isOpen={showSettleUpModal}
+        onClose={() => setShowSettleUpModal(false)}
+        onConfirm={handleSettleUp}
+        roommates={roommates}
+        currentUserId={currentUserId}
+      />
+
+      {/* Buy Beer Modal */}
+      <BuyBeerModal
+        isOpen={showBuyBeerModal}
+        onClose={() => setShowBuyBeerModal(false)}
+        onConvert={handleBuyBeer}
+        roommates={roommates}
+        currentUserId={currentUserId}
+        houseSettings={houseSettings}
+      />
     </div>
   )
 }

@@ -3,6 +3,8 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { TransactionReviewModal } from '@/components/modals/TransactionReviewModal'
+import { AddChoreModal } from '@/components/modals/AddChoreModal'
+import { AddEventModal } from '@/components/modals/AddEventModal'
 import { 
   Camera, 
   Image, 
@@ -17,6 +19,8 @@ import { generateBatchId } from '@/lib/utils'
 export const PlusScreen: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showChoreModal, setShowChoreModal] = useState(false)
+  const [showEventModal, setShowEventModal] = useState(false)
   const [parsedTransactions, setParsedTransactions] = useState<ParsedTransaction[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +46,13 @@ export const PlusScreen: React.FC = () => {
   const handleOptionSelect = (optionId: string) => {
     setSelectedOption(optionId)
     setError(null)
+    
+    // Handle non-transaction options
+    if (optionId === 'event') {
+      setShowEventModal(true)
+    } else if (optionId === 'chore') {
+      setShowChoreModal(true)
+    }
   }
 
   const handleFileUpload = async (file: File) => {
@@ -118,6 +129,32 @@ export const PlusScreen: React.FC = () => {
     setShowReviewModal(false)
     setParsedTransactions([])
     setSelectedOption(null)
+  }
+
+  const handleAddChore = (chore: {
+    title: string
+    description: string
+    assigneeId: string
+    dueDate: string
+    points: number
+  }) => {
+    // TODO: Save chore to database
+    console.log('Adding chore:', chore)
+    alert(`✅ Chore "${chore.title}" added!`)
+  }
+
+  const handleAddEvent = (event: {
+    title: string
+    description: string
+    date: string
+    time: string
+    location: string
+    cost: number
+    participants: string[]
+  }) => {
+    // TODO: Save event to database
+    console.log('Adding event:', event)
+    alert(`✅ Event "${event.title}" created!`)
   }
 
   return (
@@ -241,6 +278,22 @@ export const PlusScreen: React.FC = () => {
         onClose={() => setShowReviewModal(false)}
         onAccept={handleTransactionAccept}
         transactions={parsedTransactions}
+        roommates={roommates}
+      />
+
+      {/* Add Chore Modal */}
+      <AddChoreModal
+        isOpen={showChoreModal}
+        onClose={() => setShowChoreModal(false)}
+        onAdd={handleAddChore}
+        roommates={roommates}
+      />
+
+      {/* Add Event Modal */}
+      <AddEventModal
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        onAdd={handleAddEvent}
         roommates={roommates}
       />
     </div>
